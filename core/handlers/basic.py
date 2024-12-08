@@ -1,22 +1,27 @@
 from aiogram import Bot, Router, F
 from aiogram.filters import Command
 from aiogram.types import Message
-from ..utils.db.commands_db import select_id
-from ..keyboards.reg_kb import get_reg_kb
+
+from .msg_text import basic_text
+from ..utils.db import User
+from ..utils.db.commands_db import select_user_id, add_query
+from settings import ADMIN_ID
 
 router_basic = Router()
 
 
 @router_basic.message(Command('start'))
 async def get_start(message: Message, bot: Bot):
-    # await bot.send_message(message.from_user.id, text="Бот начал работать")
-    user = await select_id(user_id=message.from_user.id)
-    if user:
-        await bot.send_message(message.from_user.id, f"Добро пожаловать {user.username}\n"
-                                                     f"Дата регистрации: {user.reg_date}")
-    else:
-        await bot.send_message(message.from_user.id, f"Добро пожаловать {message.from_user.username}\n"
-                                                     f"Вы не зарегистрированы.", reply_markup=get_reg_kb())
+    user = await select_user_id(user_id=message.from_user.id)
+    if not user:
+        await bot.send_message(ADMIN_ID, text=f"New user: {message.from_user.first_name}")
+        username = message.from_user.first_name
+        await add_query(model=User,
+                        user_id=message.from_user.id,
+                        username=username)
+    user = await select_user_id(user_id=message.from_user.id)
+    await bot.send_message(message.from_user.id,
+                           basic_text(user.username))
 
 
 # @router_basic.message()

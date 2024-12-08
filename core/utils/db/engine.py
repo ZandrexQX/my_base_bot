@@ -8,7 +8,8 @@ from my_base.core.utils.db.url_db import users_url
 
 DEBUG_MODE = False
 
-engine = create_async_engine(url=users_url, echo=DEBUG_MODE)
+# engine = create_async_engine(url=users_url, echo=DEBUG_MODE)
+engine = create_async_engine(url="sqlite+aiosqlite:///db.sqlite3", echo=DEBUG_MODE)
 get_session = async_sessionmaker(engine, expire_on_commit=False)
 
 async def db_connect():

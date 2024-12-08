@@ -8,27 +8,24 @@ import logging
 from core.manage_dp import dp
 from core.utils.commands import set_commands
 from core.middlewares.countermiddleware import CounterMiddleware
-from my_base.core.utils.db import db_connect
+from core.utils.db import db_connect
+from core.utils.loggers import get_logger
+from settings import bot, async_scheduler
 
-logging.basicConfig(level=logging.INFO,
-                    # filename='bot_log.log',
-                    format="[%(asctime)s] - [%(levelname)s] - "
-                               "%(funcName)s:%(lineno)d - %(message)s",
-                    datefmt='%d-%m-%y %H:%M:%S')
-load_dotenv()
-token = os.getenv('BOT_TOKEN')
-
-bot = Bot(token=token, default=DefaultBotProperties(parse_mode='MARKDOWN'))
-# Регистрируем миддлвари
-dp.message.outer_middleware(CounterMiddleware())
+logger = get_logger(__name__)
 
 async def start():
-    # await db_connect()
-    logging.info('Бот запущен')
+    await db_connect()
     await set_commands(bot=bot)
     try:
+        # async_scheduler.start()
+        logger.info('Бот запущен')
         await dp.start_polling(bot, skip_updates=True)
+    except Exception as ex_name:
+        logger.error(ex_name)
     finally:
+        # async_scheduler.shutdown(wait=True)
+        logger.info('Бот остановлен')
         await bot.session.close()
 
 if __name__ == '__main__':
